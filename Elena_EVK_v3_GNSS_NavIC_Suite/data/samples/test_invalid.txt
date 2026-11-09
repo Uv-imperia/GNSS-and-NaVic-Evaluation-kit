@@ -1,0 +1,2 @@
+Some random non-nmea text content from another application
+Just lines without NMEA format.

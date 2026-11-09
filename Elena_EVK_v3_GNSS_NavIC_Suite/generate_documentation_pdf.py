@@ -1,0 +1,676 @@
+"""
+Script to generate the complete, publication-grade Technical Documentation PDF
+for the Elena Geo Tech EVK v3 Performance Evaluator.
+"""
+
+import os
+import subprocess
+import sys
+import shutil
+
+HTML_TEMPLATE = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Elena Geo Tech EVK v3 - Complete Technical Documentation & Architecture Manual</title>
+<!-- KaTeX for pristine vector math rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+    ]});"></script>
+<style>
+    @page {
+        size: A4;
+        margin: 16mm 14mm 16mm 14mm;
+    }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: #1e293b;
+        background: #ffffff;
+        line-height: 1.55;
+        font-size: 10.5pt;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Cover / Header Banner */
+    .doc-header {
+        border-bottom: 3px solid #2563eb;
+        padding-bottom: 14px;
+        margin-bottom: 24px;
+    }
+    .badge-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .badge {
+        display: inline-block;
+        padding: 3px 9px;
+        font-size: 8pt;
+        font-weight: 700;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .badge-primary { background: #dbeafe; color: #1e40af; }
+    .badge-navic { background: #ffedd5; color: #c2410c; }
+    .badge-success { background: #d1fae5; color: #065f46; }
+    
+    h1 {
+        font-size: 20pt;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 6px 0;
+        letter-spacing: -0.5px;
+    }
+    .doc-subtitle {
+        font-size: 11pt;
+        color: #475569;
+        margin: 0 0 12px 0;
+        font-weight: 500;
+    }
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 8.5pt;
+    }
+    .meta-item strong {
+        display: block;
+        color: #64748b;
+        font-size: 7.5pt;
+        text-transform: uppercase;
+    }
+    
+    /* Headings */
+    h2 {
+        font-size: 13pt;
+        color: #0f172a;
+        border-left: 4px solid #2563eb;
+        padding-left: 10px;
+        margin: 22px 0 10px 0;
+        font-weight: 700;
+        page-break-after: avoid;
+    }
+    h3 {
+        font-size: 11pt;
+        color: #1e3a8a;
+        margin: 16px 0 6px 0;
+        font-weight: 700;
+        page-break-after: avoid;
+    }
+    h4 {
+        font-size: 10pt;
+        color: #334155;
+        margin: 12px 0 4px 0;
+        font-weight: 600;
+        page-break-after: avoid;
+    }
+    
+    p {
+        margin: 0 0 8px 0;
+        text-align: justify;
+    }
+    
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0 16px 0;
+        font-size: 9pt;
+        page-break-inside: avoid;
+    }
+    th, td {
+        padding: 7px 10px;
+        border: 1px solid #cbd5e1;
+        text-align: left;
+    }
+    th {
+        background: #f1f5f9;
+        color: #0f172a;
+        font-weight: 700;
+    }
+    tr:nth-child(even) {
+        background: #f8fafc;
+    }
+    
+    /* Callout & Math Boxes */
+    .callout {
+        background: #f8fafc;
+        border-left: 3px solid #3b82f6;
+        padding: 10px 14px;
+        border-radius: 0 6px 6px 0;
+        margin: 10px 0 14px 0;
+        font-size: 9.5pt;
+        page-break-inside: avoid;
+    }
+    .callout-warning {
+        border-left-color: #f59e0b;
+        background: #fffbeb;
+    }
+    .callout-success {
+        border-left-color: #10b981;
+        background: #f0fdf4;
+    }
+    
+    .formula-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin: 8px 0 12px 0;
+        page-break-inside: avoid;
+    }
+    
+    /* Code Blocks */
+    pre, code {
+        font-family: "Consolas", "Courier New", monospace;
+    }
+    code {
+        background: #f1f5f9;
+        color: #0f172a;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 8.5pt;
+    }
+    pre {
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 8pt;
+        line-height: 1.4;
+        overflow-x: auto;
+        page-break-inside: avoid;
+        margin: 8px 0 14px 0;
+    }
+    
+    ul, ol {
+        margin: 0 0 10px 0;
+        padding-left: 20px;
+    }
+    li {
+        margin-bottom: 4px;
+    }
+    
+    .page-break {
+        page-break-before: always;
+    }
+    
+    .pillar-card {
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin-bottom: 12px;
+        background: #ffffff;
+        page-break-inside: avoid;
+    }
+    .pillar-card h4 {
+        margin-top: 0;
+        color: #1d4ed8;
+    }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+    <div class="badge-bar">
+        <span class="badge badge-primary">Technical Documentation</span>
+        <span class="badge badge-navic">Elena Geo Tech EVK v3</span>
+        <span class="badge badge-success">NavIC & GNSS Evaluator v1.0</span>
+    </div>
+    <h1>Elena Geo Tech EVK v3 — GNSS & NavIC Performance Evaluator</h1>
+    <div class="doc-subtitle">Comprehensive Technical Specification, Geodetic Formulations, Architecture Manual & System Blueprint</div>
+    <div class="meta-grid">
+        <div class="meta-item"><strong>Hardware Kit</strong>Elena Geo Tech EVK v3</div>
+        <div class="meta-item"><strong>Constellations</strong>NavIC (IRNSS), GPS, GLONASS</div>
+        <div class="meta-item"><strong>Document Type</strong>Engineering System Manual</div>
+        <div class="meta-item"><strong>Date</strong>November 2026</div>
+    </div>
+</div>
+
+<h2>1. About the Software</h2>
+
+<h3>1.1 Executive Overview & Purpose</h3>
+<p>
+The <strong>Elena Geo Tech EVK v3 GNSS & NavIC Performance Evaluator</strong> is a dedicated, desktop-based scientific evaluation software designed to audit, benchmark, and visualize the performance of multi-constellation satellite navigation receivers. Developed specifically for testing the <strong>Elena Geo Tech EVK v3 evaluation kit and high-gain antenna</strong>, the software evaluates real-world raw NMEA 0183 data extracted from field loggers.
+</p>
+<p>
+The software bridges the gap between raw hardware logging and high-level client deliverables by providing:
+</p>
+<ul>
+    <li><strong>Decoupled Standalone Operation:</strong> Accepts any NMEA <code>.txt</code> file generated by the logger hardware. No physical hardware connection or serial driver locking is required on the evaluation workstation.</li>
+    <li><strong>Automated Pre-Ingestion Heuristic Validation:</strong> Conducts an instant (sub-20 ms) sanity check on the uploaded file to ensure valid NMEA 0183 checksums and structure before running complex computations.</li>
+    <li><strong>The 4 International Benchmark Pillars:</strong> Automatically computes Local ENU position dispersion, RF signal quality & multipath attenuation, constellation geometry (DOP), and fix reliability.</li>
+    <li><strong>Publication-Grade Engineering Reporting:</strong> Generates auditable, self-contained HTML5 and PDF technical reports suitable for defense clients, ISRO reviews, and academic viva presentations.</li>
+</ul>
+
+<h3>1.2 The Problem Solved</h3>
+<p>
+Field receivers produce continuous ASCII serial streams containing tens of thousands of fragmented, asynchronous NMEA sentences (<code>$GGA</code>, <code>$RMC</code>, <code>$GSA</code>, <code>$GSV</code>). Standard spreadsheets cannot properly analyze this data because:
+</p>
+<ol>
+    <li>Positions are in geodetic curvilinear coordinates (Latitude/Longitude/Altitude on the WGS-84 ellipsoid) and must be rotated into an orthogonal topocentric Cartesian frame (Local East, North, Up) to assess sub-meter radial accuracy.</li>
+    <li>RF signal strengths ($C/N_0$) arrive split across multiple satellite vehicle messages and must be correlated with spatial elevation angles to compute low-elevation multipath degradation.</li>
+    <li>Constellation talker IDs for India's indigenous NavIC constellation (<code>$GI</code> / <code>$IN</code>) differ from standard GPS (<code>$GP</code>), requiring multi-talker epoch synchronization.</li>
+</ol>
+
+<hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+<h2>2. What's Inside the Software (Architecture & Inventory)</h2>
+
+<h3>2.1 Directory Structure</h3>
+<pre>
+gnss_navic_logger/
+│
+├── evaluator_app.py            # Primary Tkinter Desktop Application (GUI, Async Threading, Canvas)
+├── main.py                     # CLI & GUI entry point (supports automated batch evaluations)
+├── README.md                   # Quickstart documentation & PyCharm run guide
+├── requirements.txt            # Python dependencies (numpy, matplotlib)
+│
+├── core/                       # Core Mathematical & Analytical Engines
+│   ├── evaluator.py            # Pillar calculations, geodetic math, pre-validation scanner
+│   ├── nmea_parser.py          # NMEA 0183 sentence decoder, talker ID resolver, epoch synchronizer
+│   ├── plotter.py              # In-place Matplotlib figure renderer for the 4 pillars
+│   └── report_generator.py     # Standalone HTML5/PDF publication report generator
+│
+├── data/                       # Local Data Store
+│   ├── samples/                # Sample NMEA .txt files (standard, zero-fix, single-fix)
+│   ├── reports/                # Automatically generated HTML/PDF engineering reports
+│   └── plots/                  # Exported companion PNG plots (ENU scatter, CDF, skyplot, RF)
+│
+└── test_app_upload.py          # Automated regression & stability verification test suite
+</pre>
+
+<h3>2.2 Component & Module Breakdown</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Module File</th>
+            <th>Primary Class / Components</th>
+            <th>Functional Role</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>evaluator_app.py</code></td>
+            <td><code>StandaloneEvaluatorApp</code></td>
+            <td>Tkinter GUI container, dark engineering theme, asynchronous worker thread dispatcher, 4 headline KPI cards, 4 interactive tabs with Matplotlib canvas integration.</td>
+        </tr>
+        <tr>
+            <td><code>core/evaluator.py</code></td>
+            <td><code>GNSSEvaluator</code></td>
+            <td>Implements all mathematical algorithms for the 4 pillars, coordinate frame rotations (WGS-84 to ECEF to ENU), statistical dispersion estimators, and file pre-validation.</td>
+        </tr>
+        <tr>
+            <td><code>core/nmea_parser.py</code></td>
+            <td><code>NMEAParser</code>, <code>NMEAFix</code></td>
+            <td>Validates 8-bit XOR checksums, parses geographical coordinates from DDMM.MMMM to decimal degrees, resolves multi-constellation talker IDs, and buffers epoch records.</td>
+        </tr>
+        <tr>
+            <td><code>core/plotter.py</code></td>
+            <td><code>GNSSPlotter</code></td>
+            <td>Generates horizontal ENU scatter, Error CDF curves, C/N0 vs Elevation angle multipath plots, and polar stereographic skyplots with in-place figure recycling.</td>
+        </tr>
+        <tr>
+            <td><code>core/report_generator.py</code></td>
+            <td><code>ReportGenerator</code></td>
+            <td>Assembles an executive HTML5/CSS3 report containing summary KPI badges, geodetic coordinate tables, satellite PRN tracking matrices, and print-ready formatting.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>2.3 End-to-End Processing Pipeline</h3>
+<div class="callout callout-success">
+    <strong>Dataflow Pipeline:</strong><br>
+    <strong>1. Upload</strong> (User picks <code>.txt</code> file) &rarr; 
+    <strong>2. Validation</strong> (Fast 20 ms heuristic scanner verifies NMEA sentences) &rarr; 
+    <strong>3. Worker Thread</strong> (Background ingestion streams lines without blocking UI) &rarr; 
+    <strong>4. Multi-Sentence Epoch Fusion</strong> (Fuses <code>$GGA</code>, <code>$RMC</code>, <code>$GSA</code>, <code>$GSV</code> into synchronized epochs) &rarr; 
+    <strong>5. Geodetic & Statistical Computation</strong> (Local ENU, DRMS, CEP, C/N0 separation, DOP analysis) &rarr; 
+    <strong>6. UI Refresh & Reporting</strong> (Thread-safe <code>root.after()</code> callback updates cards, redraws Matplotlib figures in-place, and unlocks report export).
+</div>
+
+<div class="page-break"></div>
+
+<h2>3. Mathematical Formulations, Algorithms & Methods</h2>
+
+<p>
+The evaluation engine implements rigorous geodetic transformations and statistical estimators adhering to international GNSS benchmarking standards (e.g., RTCM, US DoD GPS SPS, and ISRO IRNSS performance standards).
+</p>
+
+<h3>3.1 Pillar 1: Positioning Accuracy & Geodetic Dispersion</h3>
+
+<h4>1. Geodetic to ECEF (Earth-Centered, Earth-Fixed) Transformation</h4>
+<p>
+Receiver positions are converted from geodetic latitude $\phi$, longitude $\lambda$, and ellipsoidal height $h$ to Cartesian ECEF coordinates $(X, Y, Z)$ using the <strong>WGS-84 reference ellipsoid</strong>:
+</p>
+
+<div class="formula-box">
+    $$N(\phi) = \frac{a}{\sqrt{1 - e^2 \sin^2(\phi)}}$$
+    $$X = \left(N(\phi) + h\right) \cos(\phi) \cos(\lambda)$$
+    $$Y = \left(N(\phi) + h\right) \cos(\phi) \sin(\lambda)$$
+    $$Z = \left(N(\phi)(1 - e^2) + h\right) \sin(\phi)$$
+</div>
+<p>
+Where:
+<br>&bull; Semi-major axis $a = 6,378,137.0\text{ meters}$
+<br>&bull; Flattening $f = 1 / 298.257223563$
+<br>&bull; First eccentricity squared $e^2 = 2f - f^2 \approx 0.00669437999014$
+</p>
+
+<h4>2. ECEF to Local Tangent Plane (Local ENU: East, North, Up)</h4>
+<p>
+To evaluate horizontal and vertical positioning errors independent of global curvature, the ECEF coordinate displacements are rotated into a topocentric Local Tangent Plane centered at the antenna reference position $(\phi_0, \lambda_0, h_0)$:
+</p>
+
+<div class="formula-box">
+    $$\begin{bmatrix} \Delta E \\ \Delta N \\ \Delta U \end{bmatrix} = \begin{bmatrix} -\sin(\lambda_0) & \cos(\lambda_0) & 0 \\ -\sin(\phi_0)\cos(\lambda_0) & -\sin(\phi_0)\sin(\lambda_0) & \cos(\phi_0) \\ \cos(\phi_0)\cos(\lambda_0) & \cos(\phi_0)\sin(\lambda_0) & \sin(\phi_0) \end{bmatrix} \begin{bmatrix} X - X_0 \\ Y - Y_0 \\ Z - Z_0 \end{bmatrix}$$
+</div>
+<p>
+If the user provides an external ground-truth surveyed coordinate, that coordinate is used as $(\phi_0, \lambda_0, h_0)$ to compute <em>absolute accuracy</em>. If no reference is provided, the mathematical centroid mean of the session is used to evaluate <em>relative repeatable dispersion</em>.
+</p>
+
+<h4>3. Statistical Dispersion & Error Figures of Merit</h4>
+<ul>
+    <li><strong>Component Standard Deviations:</strong>
+        $$\sigma_E = \sqrt{\frac{1}{N-1} \sum_{i=1}^N (\Delta E_i - \bar{E})^2}, \quad \sigma_N = \sqrt{\frac{1}{N-1} \sum_{i=1}^N (\Delta N_i - \bar{N})^2}, \quad \sigma_U = \sqrt{\frac{1}{N-1} \sum_{i=1}^N (\Delta U_i - \bar{U})^2}$$
+    </li>
+    <li><strong>2D Horizontal Radial Error ($r_{2D}$) & 3D Spherical Error ($r_{3D}$):</strong>
+        $$r_{2D, i} = \sqrt{\Delta E_i^2 + \Delta N_i^2}, \qquad r_{3D, i} = \sqrt{\Delta E_i^2 + \Delta N_i^2 + \Delta U_i^2}$$
+    </li>
+    <li><strong>DRMS (Distance Root Mean Square):</strong>
+        $$\text{DRMS} = \sqrt{\sigma_E^2 + \sigma_N^2} \quad (\approx 63.2\% - 68.3\% \text{ probability})$$
+    </li>
+    <li><strong>2DRMS (Twice Distance Root Mean Square — International Benchmark Standard):</strong>
+        $$\text{2DRMS} = 2 \times \text{DRMS} = 2\sqrt{\sigma_E^2 + \sigma_N^2} \quad (\approx 95.4\% - 98.2\% \text{ probability})$$
+    </li>
+    <li><strong>CEP (Circular Error Probable — 50% Median Radius):</strong>
+        $$\text{CEP}_{50} = \text{Percentile}_{50}(r_{2D})$$
+    </li>
+    <li><strong>SEP (Spherical Error Probable — 3D 50% Sphere):</strong>
+        $$\text{SEP} = \text{Percentile}_{50}(r_{3D})$$
+    </li>
+    <li><strong>Vertical Dispersion ($2\sigma_U$):</strong>
+        $$2\sigma_U = 2 \times \sigma_U \quad (\approx 95.4\% \text{ vertical confidence interval})$$
+    </li>
+    <li><strong>Empirical Error CDF (Cumulative Distribution Function):</strong>
+        The radial errors $r_{2D}$ are sorted in ascending order $r_{(1)} \le r_{(2)} \le \dots \le r_{(N)}$ with assigned cumulative probabilities $P(r) = \frac{i}{N} \times 100\%$. The evaluator calculates the 50th ($\text{CEP}$), 68.27th ($1\sigma$), 95th ($\text{2DRMS}$), and 99th percentiles.
+    </li>
+</ul>
+
+<div class="page-break"></div>
+
+<h3>3.2 Pillar 2: RF Signal Quality & Tracking Attributes</h3>
+
+<div class="pillar-card">
+    <h4>Carrier-to-Noise Density Ratio ($C/N_0$)</h4>
+    <p>
+    $C/N_0$ indicates the received satellite signal power relative to thermal noise floor, extracted from NMEA <code>$GSV</code> sentences in units of $\text{dB-Hz}$.
+    $$\overline{C/N_0} = \frac{1}{K} \sum_{k=1}^K (C/N_0)_k$$
+    </p>
+</div>
+
+<ul>
+    <li><strong>Frequency Band & Constellation Separation:</strong>
+        The software dynamically catalogs satellites by constellation and band:
+        <ul>
+            <li><strong>NavIC (IRNSS):</strong> Tracked on L5 (1176.45 MHz) and S-Band (2492.028 MHz), PRNs 01–14.</li>
+            <li><strong>GPS:</strong> Tracked on L1 (1575.42 MHz) and L5, PRNs 01–32.</li>
+            <li><strong>GLONASS:</strong> Tracked on G1/G2 FDMA, PRNs 65–96.</li>
+        </ul>
+    </li>
+    <li><strong>Elevation-Dependent Multipath Modeling:</strong>
+        Low-elevation signals travel through denser troposphere layers and reflect off nearby terrain/structures. The evaluator applies an international standard <strong>$15^\circ$ elevation cut-off mask</strong>:
+        $$\text{Multipath Attenuation } (\Delta \text{dB}) = \overline{C/N_0}_{(\text{Elevation} \ge 15^\circ)} - \overline{C/N_0}_{(\text{Elevation} < 15^\circ)}$$
+        A low $\Delta \text{dB}$ (&le; 4 dB) indicates superior multipath rejection by the receiver antenna.
+    </li>
+    <li><strong>Satellite Tracking & Usage Efficiency:</strong>
+        $$\text{Usage Efficiency (\%)} = \frac{\text{Mean Satellites Used } (\overline{N}_{\text{used}})}{\text{Mean Satellites in View } (\overline{N}_{\text{view}})} \times 100\%$$
+    </li>
+</ul>
+
+<h3>3.3 Pillar 3: Satellite Geometry & Constellation Health</h3>
+
+<p>
+Dilution of Precision (DOP) measures the geometric configuration of satellites in view. Poor geometry clusters satellites in one sector of the sky, magnifying range errors into large positioning uncertainties:
+$$\text{Positioning Error} \approx \text{DOP} \times \sigma_{\text{UERE}}$$
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>DOP Metric</th>
+            <th>Mathematical Relationship</th>
+            <th>Target Health Thresholds</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>HDOP</strong> (Horizontal DOP)</td>
+            <td>$\sigma_H = \text{HDOP} \cdot \sigma_0$</td>
+            <td>$\le 1.0$ (Ideal), $1.0 - 2.0$ (Excellent)</td>
+        </tr>
+        <tr>
+            <td><strong>VDOP</strong> (Vertical DOP)</td>
+            <td>$\sigma_V = \text{VDOP} \cdot \sigma_0$</td>
+            <td>$\le 1.5$ (Ideal), $1.5 - 2.5$ (Good)</td>
+        </tr>
+        <tr>
+            <td><strong>PDOP</strong> (3D Position DOP)</td>
+            <td>$\text{PDOP} = \sqrt{\text{HDOP}^2 + \text{VDOP}^2}$</td>
+            <td>
+                &bull; <strong>&lt; 2.0:</strong> Optimal Geometry<br>
+                &bull; <strong>2.0 &ndash; 3.5:</strong> Good Geometry<br>
+                &bull; <strong>&gt; 3.5:</strong> Degraded Geometry
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<h4>Polar Stereographic Skyplot Projection</h4>
+<p>
+Satellites with azimuth $\alpha \in [0^\circ, 360^\circ]$ and elevation $\theta \in [0^\circ, 90^\circ]$ are mapped onto polar coordinates:
+$$r = 90^\circ - \theta, \qquad \theta_{\text{polar}} = \alpha \quad (\text{North at } 0^\circ, \text{ clockwise})$$
+This plot reveals the distinctive stationary GEO/GSO footprint of NavIC over the Indian subcontinent alongside dynamic GPS orbital passes.
+</p>
+
+<div class="page-break"></div>
+
+<h3>3.4 Pillar 4: Fix Reliability & Temporal Continuity</h3>
+
+<ul>
+    <li><strong>Fix Availability Ratio:</strong>
+        $$\text{Availability (\%)} = \frac{\text{Total Valid 3D Fix Epochs } (GGA \text{ Quality} \ge 1)}{\text{Total Logged Epochs}} \times 100\%$$
+    </li>
+    <li><strong>NMEA Fix Quality Classifications:</strong>
+        Extracted from Field 6 of <code>$GGA</code>:
+        <ul>
+            <li><code>0</code>: Invalid / No Position Fix</li>
+            <li><code>1</code>: Autonomous SPS (Standard Positioning Service)</li>
+            <li><code>2</code>: Differential GPS (DGPS / SBAS)</li>
+            <li><code>4</code>: RTK Fixed (Centimeter Carrier-Phase Solution)</li>
+            <li><code>5</code>: RTK Float</li>
+        </ul>
+    </li>
+    <li><strong>TTFF (Time to First Fix):</strong>
+        $$\text{TTFF} = t_{\text{first valid 3D fix}} - t_{\text{receiver power-on / log start}}$$
+    </li>
+    <li><strong>Epoch Continuity & Rate Jitter:</strong>
+        For successive timestamps $t_i$ and $t_{i-1}$, the epoch delta is $\Delta t_i = t_i - t_{i-1}$:
+        $$\bar{\Delta t} = \frac{1}{N-1} \sum_{i=2}^N \Delta t_i, \qquad \text{Nominal Rate (Hz)} = \frac{1}{\bar{\Delta t}}, \qquad \text{Jitter} = \sigma_{\Delta t}$$
+        If $\Delta t_i > 1.8\text{ seconds}$ (for a standard 1 Hz logger), missing epochs are flagged as <strong>Dropped Frames</strong>:
+        $$\text{Dropped Frames} = \sum \left( \text{round}(\Delta t_i) - 1 \right)$$
+    </li>
+</ul>
+
+<hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+<h2>4. Technical Stack & Development Tools</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Technology / Library</th>
+            <th>Version / Specs</th>
+            <th>Role & Justification</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Python</strong></td>
+            <td>3.10 &ndash; 3.14 (64-bit)</td>
+            <td>Core language runtime; provides geodetic arithmetic, file IO, and threading primitives.</td>
+        </tr>
+        <tr>
+            <td><strong>Tkinter & ttk</strong></td>
+            <td>Standard Library (Tcl/Tk 8.6)</td>
+            <td>Desktop GUI toolkit; delivers a native Windows window with zero heavy web/Electron overhead.</td>
+        </tr>
+        <tr>
+            <td><strong>NumPy (<code>numpy</code>)</strong></td>
+            <td>&ge; 1.24.0</td>
+            <td>Vectorized matrix math, standard deviations, array sorting, and empirical percentiles.</td>
+        </tr>
+        <tr>
+            <td><strong>Matplotlib (<code>matplotlib</code>)</strong></td>
+            <td>&ge; 3.7.0 (<code>Agg</code> backend)</td>
+            <td>High-resolution scientific plotting; embedded into Tkinter via <code>FigureCanvasTkAgg</code>.</td>
+        </tr>
+        <tr>
+            <td><strong>Python <code>threading</code></strong></td>
+            <td>Standard Library</td>
+            <td>Executes NMEA stream reading and heavy math in a background daemon thread, keeping the GUI at 60 FPS.</td>
+        </tr>
+        <tr>
+            <td><strong>HTML5 & CSS3</strong></td>
+            <td>Modern Spec</td>
+            <td>Generates standalone, CSS-styled publication reports with <code>@media print</code> vector PDF rendering.</td>
+        </tr>
+        <tr>
+            <td><strong>KaTeX / MathJax</strong></td>
+            <td>0.16.8</td>
+            <td>Typesets mathematical formulas and Greek symbols into clean vector typography for PDF generation.</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>5. Architectural Safeguards & Reliability Engineering</h2>
+
+<div class="callout callout-success">
+    <strong>Key Reliability Features Built Into the Architecture:</strong>
+</div>
+
+<ol>
+    <li><strong>Instant Pre-Ingestion Heuristic Validation:</strong>
+        Before allocating large memory structures, the software samples the first 5,000 lines of an uploaded file. It verifies NMEA 0183 talker headers and displays a confirmation dialog showing line counts, sentence types, and constellations found. If an invalid text file is uploaded, it safely rejects it without crashing.
+    </li>
+    <li><strong>In-Place Canvas Figure Recycling:</strong>
+        Previous revisions experienced Windows Tcl/Tk crashes when calling <code>plt.close()</code> and reassigning canvas widget figures. The plotter was re-engineered to clear existing figures in-place (<code>fig.clf()</code>) and trigger non-blocking flushes via <code>canvas.draw_idle()</code>, guaranteeing zero handle leaks.
+    </li>
+    <li><strong>Daemon Thread UI Decoupling:</strong>
+        Large NMEA files (10,000+ lines) are parsed and evaluated inside a background worker thread (<code>threading.Thread(daemon=True)</code>). The main thread remains responsive, eliminating the Windows "(Not Responding)" lockup.
+    </li>
+    <li><strong>Two-Tier Responsive Headline Cards:</strong>
+        Dashboard KPI cards use a two-line layout (large bold primary metric on top, secondary details below). This prevents text overflow or horizontal clipping on high-DPI displays.
+    </li>
+    <li><strong>Zero-Fix & Cold-Start Immunity:</strong>
+        Field logs recorded indoors or during receiver cold starts often contain satellite <code>$GSV</code> messages but zero valid 3D coordinates. The evaluation engine populates default structures for positioning accuracy rather than throwing <code>KeyError</code>, allowing the RF and geometry tabs to still display satellite data.
+    </li>
+</ol>
+
+<hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+<h2>6. PyCharm Run & Deployment Guide</h2>
+
+<h3>6.1 Running in PyCharm</h3>
+<ol>
+    <li>Open the project directory in <strong>PyCharm</strong>:
+        <br><code>C:\Users\Gowtham c\.gemini\antigravity\scratch\gnss_navic_logger</code>
+    </li>
+    <li>In the top-right toolbar next to the green Play button, select <strong>Run Evaluator App</strong> and click <strong>Play &#9654;</strong>.</li>
+    <li>Alternatively, open the PyCharm terminal and execute:
+        <br><code>py evaluator_app.py</code>
+    </li>
+    <li>Click <strong>"&#128228; Upload NMEA Data File (.txt)"</strong> and select your extracted logger file.</li>
+    <li>Review the validation popup, click <strong>OK</strong>, and inspect the 4 benchmark tabs.</li>
+    <li>Click <strong>"&#128196; Export PDF / HTML Report"</strong> to generate the client-ready evaluation deliverable.</li>
+</ol>
+
+<h3>6.2 Command-Line Automated Mode (Headless / Batch)</h3>
+<pre>
+# Evaluate a single file via CLI
+py main.py --evaluate "data/samples/sample_logger_output.txt"
+
+# Evaluate with known ground-truth benchmark coordinates
+py main.py --evaluate "data/samples/sample_logger_output.txt" --ref-lat 12.9716 --ref-lon 77.5946 --ref-alt 920.0
+
+# Run automated self-test on simulated Elena EVK v3 log
+py main.py --test
+</pre>
+
+<div class="callout callout-success" style="margin-top: 24px; text-align: center;">
+    <strong>Elena Geo Tech EVK v3 Performance Evaluator</strong><br>
+    Engineered for High-Reliability GNSS & NavIC Verification &bull; Built with Python, Tkinter & NumPy
+</div>
+
+</body>
+</html>
+"""
+
+def generate_pdf():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    html_file = os.path.join(script_dir, "Elena_EVK_v3_Technical_Documentation.html")
+    pdf_file = os.path.join(script_dir, "Elena_EVK_v3_Technical_Documentation.pdf")
+    desktop_dir = r"C:\Users\Gowtham c\OneDrive\Desktop"
+    desktop_pdf = os.path.join(desktop_dir, "Elena_EVK_v3_Technical_Documentation.pdf")
+
+    print("[1/3] Writing complete styled HTML documentation...")
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(HTML_TEMPLATE)
+    print(f"      HTML created: {html_file}")
+
+    print("[2/3] Rendering publication-grade PDF using Chrome headless engine...")
+    chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    if not os.path.exists(chrome_path):
+        chrome_path = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+    if not os.path.exists(chrome_path):
+        chrome_path = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+
+    cmd = [
+        chrome_path,
+        "--headless=new",
+        "--disable-gpu",
+        "--run-all-compositor-stages-before-draw",
+        "--virtual-time-budget=4000",
+        "--no-pdf-header-footer",
+        f"--print-to-pdf={pdf_file}",
+        html_file
+    ]
+
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if os.path.exists(pdf_file) and os.path.getsize(pdf_file) > 1000:
+        print(f"      PDF generated successfully: {pdf_file} ({os.path.getsize(pdf_file)} bytes)")
+    else:
+        print("      Error generating PDF:", res.stdout, res.stderr)
+        sys.exit(1)
+
+    print("[3/3] Copying PDF to Desktop for quick access...")
+    if os.path.exists(desktop_dir):
+        shutil.copyfile(pdf_file, desktop_pdf)
+        print(f"      Copied to Desktop: {desktop_pdf}")
+
+    print("\n[SUCCESS] PDF documentation compiled and saved to both locations!")
+
+if __name__ == "__main__":
+    generate_pdf()

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elena Geo Tech EVK v3 Performance Report</title>
+    <style>
+        :root {
+            --bg-main: #0b1120;
+            --bg-card: #1e293b;
+            --border-card: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-saffron: #f97316;
+            --accent-blue: #3b82f6;
+            --accent-emerald: #10b981;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+        }
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .card { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; break-inside: avoid; }
+            .no-print { display: none !important; }
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 24px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1150px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-card);
+            padding-bottom: 18px;
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #f97316, #38bdf8, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-print {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .btn-print:hover { background: #1d4ed8; }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+            margin-bottom: 20px;
+        }
+        .kpi-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .kpi-val { font-size: 24px; font-weight: 800; }
+        .kpi-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        h2 {
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-card);
+            padding-bottom: 8px;
+            font-weight: 700;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            text-align: left;
+            padding: 9px 11px;
+            border-bottom: 1px solid var(--border-card);
+        }
+        th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.03);
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-navic { background: rgba(249, 115, 22, 0.2); color: #fb923c; }
+        .badge-gnss { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .badge-emerald { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-card);
+            padding-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>Elena Geo Tech EVK v3 Performance Evaluation</h1>
+                <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 13px;">
+                    Receiver: <strong>Elena Geo Tech EVK v3</strong> &bull; Session: <strong>nmea_data</strong>
+                </p>
+                <p style="margin: 2px 0 0 0; color: var(--text-secondary); font-size: 12px;">
+                    Log: <code>nmea_data.txt</code> &bull; Generated: 2026-11-04 21:46:33
+                </p>
+            </div>
+            <div class="no-print">
+                <button class="btn-print" onclick="window.print()">Print / Export PDF</button>
+            </div>
+        </div>
+
+        <!-- 4 Pillar Banners -->
+        <div class="grid-4">
+            <div class="card" style="border-top: 3px solid #38bdf8;">
+                <div class="kpi-title">Pillar 1: 2DRMS (95% Accuracy)</div>
+                <div class="kpi-val" style="color: #38bdf8;">3.563 m</div>
+                <div class="kpi-sub">CEP 50%: 1.247m &bull; SEP 3D: 1.985m</div>
+            </div>
+            <div class="card" style="border-top: 3px solid #f97316;">
+                <div class="kpi-title">Pillar 2: NavIC (L5/S-Band) Signal</div>
+                <div class="kpi-val" style="color: #f97316;">27.9 dB-Hz</div>
+                <div class="kpi-sub">Peak: 35.0 dB &bull; Tracked: 7 sats</div>
+            </div>
+            <div class="card" style="border-top: 3px solid #10b981;">
+                <div class="kpi-title">Pillar 3: Geometry (PDOP)</div>
+                <div class="kpi-val" style="color: #10b981;">1.17</div>
+                <div class="kpi-sub">Optimal Geometry (<2.0) &bull; Optimal: 100.0%</div>
+            </div>
+            <div class="card" style="border-top: 3px solid #eab308;">
+                <div class="kpi-title">Pillar 4: Fix Reliability</div>
+                <div class="kpi-val" style="color: #facc15;">100.0%</div>
+                <div class="kpi-sub">TTFF: 0.0s &bull; Grade: <strong>B (Good)</strong></div>
+            </div>
+        </div>
+
+        <!-- PILLAR 1: Positioning Accuracy & Dispersion -->
+        <div class="card">
+            <h2>Pillar 1: Positioning Accuracy & Dispersion Attributes (Local ENU)</h2>
+            <p style="color: var(--text-secondary); font-size: 13px; margin-top: -6px;">
+                Reference Origin: 13.069592&deg; N, 77.582292&deg; E, 949.7 m MSL
+                (Sample Centroid)
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Standard Value</th>
+                        <th>Engineering Significance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>CEP (Circular Error Probable - 50%)</strong></td>
+                        <td style="color: #10b981; font-weight: 700;">1.247 m</td>
+                        <td>50% of horizontal position fixes lie within this circle radius.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DRMS (1&sigma; Horizontal)</strong></td>
+                        <td>1.782 m</td>
+                        <td>Root-mean-square distance error (&radic;(&sigma;<sub>E</sub><sup>2</sup> + &sigma;<sub>N</sub><sup>2</sup>)).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2DRMS (95% Figure of Merit)</strong></td>
+                        <td style="color: #38bdf8; font-weight: 700;">3.563 m</td>
+                        <td>Twice Distance RMS (~95% confidence). Primary GNSS datasheet metric.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEP (Spherical Error Probable - 50% 3D)</strong></td>
+                        <td>1.985 m</td>
+                        <td>3D position error sphere enclosing 50% of fix measurements.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vertical Dispersion (2&sigma;<sub>up</sub> / 95% Vertical Error)</strong></td>
+                        <td style="color: #eab308; font-weight: 700;">2.629 m</td>
+                        <td>Vertical altitude fluctuation over time (2 &times; &sigma;<sub>up</sub>).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CDF Boundaries (P50 / P68 / P95 / P99)</strong></td>
+                        <td>1.247m &bull; 2.201m &bull; 2.923m &bull; 3.073m</td>
+                        <td>Empirical Cumulative Distribution Function error percentiles.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PILLAR 2: RF Signal Quality -->
+        <div class="card">
+            <h2>Pillar 2: RF Signal Quality & Tracking Attributes ($GSV)</h2>
+            <div class="grid-2">
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Frequency Band Separation</th>
+                                <th>Mean C/N0</th>
+                                <th>Peak C/N0</th>
+                                <th>Tracked Sats</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge badge-navic">NavIC (L5/S-Band)</span></td>
+                                <td style="font-weight: 700; color: #f97316;">27.9 dB-Hz</td>
+                                <td>35.0 dB-Hz</td>
+                                <td>7 sats</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-gnss">GPS (L1/L5)</span></td>
+                                <td style="font-weight: 700; color: #3b82f6;">26.1 dB-Hz</td>
+                                <td>38.0 dB-Hz</td>
+                                <td>13 sats</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Elevation & Tracking Analysis</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Multipath Zone (&lt; 15&deg; Elevation)</td>
+                                <td>21.0 dB-Hz</td>
+                                <td>-7.2 dB attenuation</td>
+                            </tr>
+                            <tr>
+                                <td>High Elevation (&ge; 15&deg; Elevation)</td>
+                                <td>28.2 dB-Hz</td>
+                                <td>Optimal Antenna Gain</td>
+                            </tr>
+                            <tr>
+                                <td>Satellites in Use ($N_{used}$) vs View ($N_{view}$)</td>
+                                <td>21.8 / 40.2 sats</td>
+                                <td>54.3% tracking efficiency</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PILLAR 3: Geometry & Constellation Health -->
+        <div class="card">
+            <h2>Pillar 3: Satellite Geometry & Constellation Health ($GSA)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>DOP Metric</th>
+                        <th>Mean</th>
+                        <th>Min</th>
+                        <th>Max</th>
+                        <th>Health & Geometry Classification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>HDOP (Horizontal Dilution)</strong></td>
+                        <td style="font-weight: 700;">0.59</td>
+                        <td>0.56</td>
+                        <td>0.72</td>
+                        <td>Latitude/Longitude precision scaling factor.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>VDOP (Vertical Dilution)</strong></td>
+                        <td style="font-weight: 700;">1.01</td>
+                        <td>0.92</td>
+                        <td>1.12</td>
+                        <td>Altitude precision scaling factor.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PDOP (3D Position Dilution)</strong></td>
+                        <td style="font-weight: 700; color: #10b981;">1.17</td>
+                        <td>1.08</td>
+                        <td>1.33</td>
+                        <td><strong>Optimal Geometry (<2.0)</strong> (100.0% &lt; 2.0 optimal, 0.0% &gt; 3.5 degraded)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PILLAR 4: Fix Reliability & Temporal -->
+        <div class="card">
+            <h2>Pillar 4: Fix Reliability & Temporal Attributes ($GGA)</h2>
+            <div class="grid-2">
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fix Quality Type</th>
+                                <th>Epochs</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Autonomous SPS (1)</td><td style='font-weight:600;'>368</td><td>100.0%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Continuity & Latency Attribute</th>
+                                <th>Measurement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Fix Availability Ratio (%)</td>
+                                <td style="font-weight: 700; color: #10b981;">100.0% (368/368 epochs)</td>
+                            </tr>
+                            <tr>
+                                <td>Time to First Fix (TTFF)</td>
+                                <td style="font-weight: 700;">0.0 seconds</td>
+                            </tr>
+                            <tr>
+                                <td>Nominal Logging Rate</td>
+                                <td>1.0 Hz (Interval: 1.0s)</td>
+                            </tr>
+                            <tr>
+                                <td>Rate Jitter (&sigma;<sub>&Delta;t</sub>)</td>
+                                <td>&plusmn;0.0s</td>
+                            </tr>
+                            <tr>
+                                <td>Dropped Frames / Lost Epochs</td>
+                                <td>0 frames (100.0% continuity)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Per-Satellite PRN Tracking Matrix -->
+        <div class="card">
+            <h2>Detailed Per-Satellite RF Tracking Matrix ($GSV)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Constellation</th>
+                        <th>PRN</th>
+                        <th>Mean C/N0</th>
+                        <th>Peak</th>
+                        <th>Min</th>
+                        <th>Elevation</th>
+                        <th>Azimuth</th>
+                        <th>Used in Filter</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="badge badge-navic">NavIC</span></td>
+                <td style="font-weight: 700;">1</td>
+                <td style="font-weight: 600; color: #f97316;">22.5 dB-Hz</td>
+                <td>29.0 dB-Hz</td>
+                <td>14.0 dB-Hz</td>
+                <td>0.0&deg;</td>
+                <td>0.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-navic">NavIC</span></td>
+                <td style="font-weight: 700;">2</td>
+                <td style="font-weight: 600; color: #f97316;">30.8 dB-Hz</td>
+                <td>35.0 dB-Hz</td>
+                <td>18.0 dB-Hz</td>
+                <td>53.0&deg;</td>
+                <td>218.1&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-navic">NavIC</span></td>
+                <td style="font-weight: 700;">3</td>
+                <td style="font-weight: 600; color: #f97316;">30.7 dB-Hz</td>
+                <td>33.0 dB-Hz</td>
+                <td>20.0 dB-Hz</td>
+                <td>0.0&deg;</td>
+                <td>0.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-navic">NavIC</span></td>
+                <td style="font-weight: 700;">5</td>
+                <td style="font-weight: 600; color: #f97316;">27.0 dB-Hz</td>
+                <td>33.0 dB-Hz</td>
+                <td>17.0 dB-Hz</td>
+                <td>0.0&deg;</td>
+                <td>0.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-navic">NavIC</span></td>
+                <td style="font-weight: 700;">6</td>
+                <td style="font-weight: 600; color: #f97316;">30.5 dB-Hz</td>
+                <td>33.0 dB-Hz</td>
+                <td>20.0 dB-Hz</td>
+                <td>0.0&deg;</td>
+                <td>0.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-navic">NavIC</span></td>
+                <td style="font-weight: 700;">7</td>
+                <td style="font-weight: 600; color: #f97316;">29.5 dB-Hz</td>
+                <td>33.0 dB-Hz</td>
+                <td>20.0 dB-Hz</td>
+                <td>0.0&deg;</td>
+                <td>0.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-navic">NavIC</span></td>
+                <td style="font-weight: 700;">9</td>
+                <td style="font-weight: 600; color: #f97316;">25.1 dB-Hz</td>
+                <td>33.0 dB-Hz</td>
+                <td>17.0 dB-Hz</td>
+                <td>0.0&deg;</td>
+                <td>0.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">1</td>
+                <td style="font-weight: 600; color: #38bdf8;">21.7 dB-Hz</td>
+                <td>27.0 dB-Hz</td>
+                <td>16.0 dB-Hz</td>
+                <td>8.0&deg;</td>
+                <td>177.5&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">1</td>
+                <td style="font-weight: 600; color: #38bdf8;">26.8 dB-Hz</td>
+                <td>29.0 dB-Hz</td>
+                <td>24.0 dB-Hz</td>
+                <td>18.0&deg;</td>
+                <td>97.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">Galileo</span></td>
+                <td style="font-weight: 700;">2</td>
+                <td style="font-weight: 600; color: #38bdf8;">31.8 dB-Hz</td>
+                <td>35.0 dB-Hz</td>
+                <td>27.0 dB-Hz</td>
+                <td>45.7&deg;</td>
+                <td>29.6&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">2</td>
+                <td style="font-weight: 600; color: #38bdf8;">19.6 dB-Hz</td>
+                <td>26.0 dB-Hz</td>
+                <td>12.0 dB-Hz</td>
+                <td>8.0&deg;</td>
+                <td>157.4&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">2</td>
+                <td style="font-weight: 600; color: #38bdf8;">26.0 dB-Hz</td>
+                <td>27.0 dB-Hz</td>
+                <td>24.0 dB-Hz</td>
+                <td>74.0&deg;</td>
+                <td>170.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">3</td>
+                <td style="font-weight: 600; color: #38bdf8;">32.1 dB-Hz</td>
+                <td>36.0 dB-Hz</td>
+                <td>22.0 dB-Hz</td>
+                <td>41.5&deg;</td>
+                <td>198.5&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">3</td>
+                <td style="font-weight: 600; color: #38bdf8;">34.2 dB-Hz</td>
+                <td>36.0 dB-Hz</td>
+                <td>28.0 dB-Hz</td>
+                <td>49.0&deg;</td>
+                <td>111.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">Galileo</span></td>
+                <td style="font-weight: 700;">3</td>
+                <td style="font-weight: 600; color: #38bdf8;">29.7 dB-Hz</td>
+                <td>31.0 dB-Hz</td>
+                <td>28.0 dB-Hz</td>
+                <td>38.0&deg;</td>
+                <td>102.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">4</td>
+                <td style="font-weight: 600; color: #38bdf8;">21.5 dB-Hz</td>
+                <td>32.0 dB-Hz</td>
+                <td>11.0 dB-Hz</td>
+                <td>65.5&deg;</td>
+                <td>24.5&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">7</td>
+                <td style="font-weight: 600; color: #38bdf8;">26.6 dB-Hz</td>
+                <td>32.0 dB-Hz</td>
+                <td>18.0 dB-Hz</td>
+                <td>24.0&deg;</td>
+                <td>310.5&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">Galileo</span></td>
+                <td style="font-weight: 700;">7</td>
+                <td style="font-weight: 600; color: #38bdf8;">24.6 dB-Hz</td>
+                <td>29.0 dB-Hz</td>
+                <td>18.0 dB-Hz</td>
+                <td>19.4&deg;</td>
+                <td>327.9&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">7</td>
+                <td style="font-weight: 600; color: #38bdf8;">20.0 dB-Hz</td>
+                <td>22.0 dB-Hz</td>
+                <td>18.0 dB-Hz</td>
+                <td>25.0&deg;</td>
+                <td>43.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">Galileo</span></td>
+                <td style="font-weight: 700;">8</td>
+                <td style="font-weight: 600; color: #38bdf8;">24.9 dB-Hz</td>
+                <td>32.0 dB-Hz</td>
+                <td>15.0 dB-Hz</td>
+                <td>56.4&deg;</td>
+                <td>17.8&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">8</td>
+                <td style="font-weight: 600; color: #38bdf8;">32.9 dB-Hz</td>
+                <td>35.0 dB-Hz</td>
+                <td>30.0 dB-Hz</td>
+                <td>38.7&deg;</td>
+                <td>110.3&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">8</td>
+                <td style="font-weight: 600; color: #38bdf8;">30.2 dB-Hz</td>
+                <td>34.0 dB-Hz</td>
+                <td>25.0 dB-Hz</td>
+                <td>52.0&deg;</td>
+                <td>133.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">9</td>
+                <td style="font-weight: 600; color: #38bdf8;">29.3 dB-Hz</td>
+                <td>36.0 dB-Hz</td>
+                <td>13.0 dB-Hz</td>
+                <td>40.4&deg;</td>
+                <td>337.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">Galileo</span></td>
+                <td style="font-weight: 700;">13</td>
+                <td style="font-weight: 600; color: #38bdf8;">20.5 dB-Hz</td>
+                <td>27.0 dB-Hz</td>
+                <td>14.0 dB-Hz</td>
+                <td>7.4&deg;</td>
+                <td>241.4&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">14</td>
+                <td style="font-weight: 600; color: #38bdf8;">22.0 dB-Hz</td>
+                <td>31.0 dB-Hz</td>
+                <td>11.0 dB-Hz</td>
+                <td>10.4&deg;</td>
+                <td>229.5&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">14</td>
+                <td style="font-weight: 600; color: #38bdf8;">18.9 dB-Hz</td>
+                <td>25.0 dB-Hz</td>
+                <td>12.0 dB-Hz</td>
+                <td>83.1&deg;</td>
+                <td>208.4&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">16</td>
+                <td style="font-weight: 600; color: #38bdf8;">24.3 dB-Hz</td>
+                <td>29.0 dB-Hz</td>
+                <td>17.0 dB-Hz</td>
+                <td>0.0&deg;</td>
+                <td>0.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">21</td>
+                <td style="font-weight: 600; color: #38bdf8;">37.8 dB-Hz</td>
+                <td>41.0 dB-Hz</td>
+                <td>34.0 dB-Hz</td>
+                <td>58.2&deg;</td>
+                <td>154.8&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">22</td>
+                <td style="font-weight: 600; color: #38bdf8;">19.7 dB-Hz</td>
+                <td>23.0 dB-Hz</td>
+                <td>17.0 dB-Hz</td>
+                <td>7.0&deg;</td>
+                <td>148.3&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">24</td>
+                <td style="font-weight: 600; color: #38bdf8;">22.1 dB-Hz</td>
+                <td>28.0 dB-Hz</td>
+                <td>18.0 dB-Hz</td>
+                <td>43.0&deg;</td>
+                <td>294.4&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">25</td>
+                <td style="font-weight: 600; color: #38bdf8;">15.6 dB-Hz</td>
+                <td>18.0 dB-Hz</td>
+                <td>13.0 dB-Hz</td>
+                <td>2.0&deg;</td>
+                <td>250.3&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">26</td>
+                <td style="font-weight: 600; color: #38bdf8;">25.8 dB-Hz</td>
+                <td>33.0 dB-Hz</td>
+                <td>14.0 dB-Hz</td>
+                <td>43.2&deg;</td>
+                <td>2.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">27</td>
+                <td style="font-weight: 600; color: #38bdf8;">29.8 dB-Hz</td>
+                <td>35.0 dB-Hz</td>
+                <td>21.0 dB-Hz</td>
+                <td>37.6&deg;</td>
+                <td>77.2&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">Galileo</span></td>
+                <td style="font-weight: 700;">27</td>
+                <td style="font-weight: 600; color: #38bdf8;">19.9 dB-Hz</td>
+                <td>21.0 dB-Hz</td>
+                <td>19.0 dB-Hz</td>
+                <td>26.0&deg;</td>
+                <td>223.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">30</td>
+                <td style="font-weight: 600; color: #38bdf8;">15.4 dB-Hz</td>
+                <td>18.0 dB-Hz</td>
+                <td>12.0 dB-Hz</td>
+                <td>2.0&deg;</td>
+                <td>285.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">Galileo</span></td>
+                <td style="font-weight: 700;">32</td>
+                <td style="font-weight: 600; color: #38bdf8;">37.2 dB-Hz</td>
+                <td>40.0 dB-Hz</td>
+                <td>30.0 dB-Hz</td>
+                <td>56.0&deg;</td>
+                <td>67.4&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">BeiDou</span></td>
+                <td style="font-weight: 700;">39</td>
+                <td style="font-weight: 600; color: #38bdf8;">27.6 dB-Hz</td>
+                <td>32.0 dB-Hz</td>
+                <td>19.0 dB-Hz</td>
+                <td>4.9&deg;</td>
+                <td>46.6&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">45</td>
+                <td style="font-weight: 600; color: #38bdf8;">37.2 dB-Hz</td>
+                <td>38.0 dB-Hz</td>
+                <td>35.0 dB-Hz</td>
+                <td>65.2&deg;</td>
+                <td>128.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">GLONASS</span></td>
+                <td style="font-weight: 700;">67</td>
+                <td style="font-weight: 600; color: #38bdf8;">26.7 dB-Hz</td>
+                <td>32.0 dB-Hz</td>
+                <td>13.0 dB-Hz</td>
+                <td>33.9&deg;</td>
+                <td>146.1&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">GLONASS</span></td>
+                <td style="font-weight: 700;">68</td>
+                <td style="font-weight: 600; color: #38bdf8;">22.4 dB-Hz</td>
+                <td>26.0 dB-Hz</td>
+                <td>18.0 dB-Hz</td>
+                <td>80.4&deg;</td>
+                <td>66.7&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">GLONASS</span></td>
+                <td style="font-weight: 700;">69</td>
+                <td style="font-weight: 600; color: #38bdf8;">23.8 dB-Hz</td>
+                <td>31.0 dB-Hz</td>
+                <td>13.0 dB-Hz</td>
+                <td>35.2&deg;</td>
+                <td>341.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">GLONASS</span></td>
+                <td style="font-weight: 700;">78</td>
+                <td style="font-weight: 600; color: #38bdf8;">25.7 dB-Hz</td>
+                <td>32.0 dB-Hz</td>
+                <td>16.0 dB-Hz</td>
+                <td>17.0&deg;</td>
+                <td>20.3&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">GLONASS</span></td>
+                <td style="font-weight: 700;">79</td>
+                <td style="font-weight: 600; color: #38bdf8;">24.9 dB-Hz</td>
+                <td>31.0 dB-Hz</td>
+                <td>17.0 dB-Hz</td>
+                <td>46.3&deg;</td>
+                <td>328.0&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-emerald">GLONASS</span></td>
+                <td style="font-weight: 700;">80</td>
+                <td style="font-weight: 600; color: #38bdf8;">24.3 dB-Hz</td>
+                <td>31.0 dB-Hz</td>
+                <td>12.0 dB-Hz</td>
+                <td>29.3&deg;</td>
+                <td>257.7&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><span class="badge badge-gnss">GPS</span></td>
+                <td style="font-weight: 700;">194</td>
+                <td style="font-weight: 600; color: #38bdf8;">32.8 dB-Hz</td>
+                <td>35.0 dB-Hz</td>
+                <td>26.0 dB-Hz</td>
+                <td>24.0&deg;</td>
+                <td>58.1&deg;</td>
+                <td>0.0%</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            Elena Geo Tech EVK v3 Evaluation Suite &bull; Engineering Evaluation Report
+        </div>
+    </div>
+</body>
+</html>

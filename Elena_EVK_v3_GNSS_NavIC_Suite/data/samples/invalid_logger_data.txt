@@ -1,0 +1,4 @@
+Elena Geo Tech Receiver Test Log
+Logger started at 12:00:00
+No NMEA lines here
+Just random diagnostic logs

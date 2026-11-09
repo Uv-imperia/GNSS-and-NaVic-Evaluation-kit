@@ -1,0 +1,5 @@
+pyserial>=3.5
+matplotlib>=3.8.0
+numpy>=1.26.0
+pandas>=2.0.0
+PyQt6>=6.5.0
